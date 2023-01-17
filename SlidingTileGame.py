@@ -27,7 +27,7 @@ class SlidingTileGame:
             gameState.printBoard()
             print('\n')
 
-    def sortFunction(self, move, gameState: SlidingTileBoard):
+    def sortFunction(self, move: list, gameState: SlidingTileBoard):
         source = move[0]
         destination = move[1]
         actual_coordinates = gameState.actual_xy[gameState.board[source[0]][source[1]]]

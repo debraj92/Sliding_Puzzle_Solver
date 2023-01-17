@@ -48,16 +48,16 @@ class SlidingTileBoard:
     def getY(self, coordinates: list) -> int:
         return coordinates[1]
 
-    def manhattanDistance(self, source, destination):
+    def manhattanDistance(self, source: list, destination: list):
         return abs(source[0] - destination[0]) + abs(source[1] - destination[1])
 
-    def getTile(self, coordinates) -> int:
+    def getTile(self, coordinates: list) -> int:
         return self.board[coordinates[0]][coordinates[1]]
 
-    def setTile(self, coordinates, tile_value):
+    def setTile(self, coordinates, tile_value) -> int:
         self.board[self.getX(coordinates)][self.getY(coordinates)] = tile_value
 
-    def move(self, move_object):
+    def move(self, move_object: list) -> int:
         source = move_object[0]
         destination = move_object[1]
 
