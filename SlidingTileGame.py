@@ -35,13 +35,13 @@ class SlidingTileGame:
         newHeuristic = gameState.manhattanDistance(destination, [actual_coordinates[0], actual_coordinates[1]])
         return newHeuristic - oldHeuristic
 
-    def search(self, gameState: SlidingTileBoard, path_cost: int, bound: int, visited: dict, path: list):
+    def search(self, gameState: SlidingTileBoard, path_cost: int, bound: int, visited: dict, path: list, parent_move_destination: list):
 
         if gameState.isSolved():
             path.append(gameState.serializeBoardToString())
             return True
 
-        validMoves = gameState.generateValidMoves()
+        validMoves = gameState.generateValidMoves(parent_move_destination)
         validMoves = sorted(validMoves, key=lambda m: self.sortFunction(m, gameState))
 
         g_cost = path_cost + gameState.gCost()
@@ -74,7 +74,7 @@ class SlidingTileGame:
                     visited[gameState.hashValue] = [g_cost, bound]
 
                 if isCurrentNodeBetterThanCached:
-                    found = self.search(gameState, g_cost, bound, visited, path)
+                    found = self.search(gameState, g_cost, bound, visited, path, move[1])
                     if found:
                         path.append(gameState.serializeBoardToString())
 
@@ -112,7 +112,7 @@ class SlidingTileGame:
             visited[gameState.hashValue] = [0, bound]
             self.nextBound = self.INFINITY
 
-            found = self.search(gameState, 0, bound, visited, path)
+            found = self.search(gameState, 0, bound, visited, path, [-1, -1])
             if found:
                 path.append(gameState.serializeBoardToString())
 

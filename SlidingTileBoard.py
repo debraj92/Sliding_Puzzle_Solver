@@ -107,21 +107,21 @@ class SlidingTileBoard:
     def gCost(self):
         return 1
 
-    def generateValidMoves(self):
+    def generateValidMoves(self, parent_move_destination: list):
         listOfValidMoves = []
         # Enable for debugging
         # assert len(self.EmptyCellCoordinates) > 0
         destination = self.EmptyCellCoordinates
         x = self.getX(self.EmptyCellCoordinates)
         y = self.getY(self.EmptyCellCoordinates)
-        if x > 0:
+        if x > 0 and parent_move_destination != [x - 1, y]:
             listOfValidMoves.append([[x - 1, y], destination])
-        if x < 3:
+        if x < 3 and parent_move_destination != [x + 1, y]:
             listOfValidMoves.append([[x + 1, y], destination])
 
-        if y > 0:
+        if y > 0 and parent_move_destination != [x, y - 1]:
             listOfValidMoves.append([[x, y - 1], destination])
-        if y < 3:
+        if y < 3 and parent_move_destination != [x, y + 1]:
             listOfValidMoves.append([[x, y + 1], destination])
 
         return listOfValidMoves
