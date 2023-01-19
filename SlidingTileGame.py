@@ -63,8 +63,17 @@ class SlidingTileGame:
                 boundExceeded = True
 
             else:
-                if (gameState.hashValue not in visited) or (g_cost < visited[gameState.hashValue]):
-                    visited[gameState.hashValue] = g_cost
+                cached = visited.get(gameState.hashValue)
+                if cached is not None:
+                    isCurrentNodeBetterThanCached = (g_cost < cached[0]) or (cached[1] < bound and (g_cost == cached[0]))
+                    if isCurrentNodeBetterThanCached:
+                        cached[0] = g_cost
+                        cached[1] = bound
+                else:
+                    isCurrentNodeBetterThanCached = True
+                    visited[gameState.hashValue] = [g_cost, bound]
+
+                if isCurrentNodeBetterThanCached:
                     found = self.search(gameState, g_cost, bound, visited, path)
                     if found:
                         path.append(gameState.serializeBoardToString())
@@ -100,7 +109,7 @@ class SlidingTileGame:
         found = False
         while bound < self.INFINITY and not found:
             print("Bound", bound)
-            visited[gameState.hashValue] = 0
+            visited[gameState.hashValue] = [0, bound]
             self.nextBound = self.INFINITY
 
             found = self.search(gameState, 0, bound, visited, path)
@@ -110,8 +119,6 @@ class SlidingTileGame:
             print(found)
 
             bound = self.nextBound
-
-            visited.clear()
 
         return found
 
