@@ -107,6 +107,10 @@ class SlidingTileBoard:
     def gCost(self):
         return 1
 
+    def gCostWeighted(self, move_destination: list):
+        tileValue = self.board[move_destination[0]][move_destination[1]]
+        return round((tileValue + 2) / (tileValue + 1), 3)
+
     def generateValidMoves(self, parent_move_destination: list):
         listOfValidMoves = []
         # Enable for debugging
