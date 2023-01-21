@@ -44,8 +44,6 @@ class SlidingTileGame:
         validMoves = gameState.generateValidMoves(parent_move_destination)
         validMoves = sorted(validMoves, key=lambda m: self.sortFunction(m, gameState))
 
-        g_cost = path_cost + gameState.gCost()
-
         for move in validMoves:
             moved = gameState.move(move)
 
@@ -56,7 +54,11 @@ class SlidingTileGame:
 
             boundExceeded = False
             found = False
+
+            #g_cost = path_cost + gameState.gCostWeighted(move[1])
+            g_cost = path_cost + gameState.gCost()
             f = g_cost + gameState.heuristic
+
             if f > bound:
                 if f < self.nextBound:
                     self.nextBound = f
