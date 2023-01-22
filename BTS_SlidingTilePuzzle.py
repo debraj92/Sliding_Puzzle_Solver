@@ -93,8 +93,8 @@ class BTS_SlidingTilePuzzle:
                             (g_cost == cached[0]) and ((cached[1] < costLimit) or (cached[2] < nodeWidth)))
                     if (not self.dontUpdateCache) and isCurrentNodeBetterThanCached:
                         cached[0] = g_cost
-                        cached[1] = max(costLimit, cached[1])
-                        cached[2] = max(nodeWidth, cached[2])
+                        cached[1] = costLimit
+                        cached[2] = nodeWidth
                 else:
                     isCurrentNodeBetterThanCached = True
                     self.visited[gameState.hashValue] = [g_cost, costLimit, nodeWidth]
