@@ -29,7 +29,7 @@ class SlidingTileBoard:
                     continue
                 self.hashValue ^= (r * 4 + c) << (tileValue * 4)
                 actual_coordinates = self.actual_xy[self.board[r][c]]
-                self.heuristic += self.manhattanDistance((r, c), actual_coordinates)
+                self.heuristic += self.manhattanDistance((r, c), actual_coordinates) * self.gCostWeighted((r, c))
 
     def printBoard(self):
         for r in range(4):
@@ -76,7 +76,7 @@ class SlidingTileBoard:
         actual_coordinates = self.actual_xy[self.board[source[0]][source[1]]]
         oldHeuristic = self.manhattanDistance(source, [actual_coordinates[0], actual_coordinates[1]])
         newHeuristic = self.manhattanDistance(destination, [actual_coordinates[0], actual_coordinates[1]])
-        self.heuristic += newHeuristic - oldHeuristic
+        self.heuristic += (newHeuristic - oldHeuristic) * self.gCostWeighted(source)
 
         # remove old hash
         self.hashValue ^= (source[0] * 4 + source[1]) << (self.board[source[0]][source[1]] * 4)
@@ -102,7 +102,7 @@ class SlidingTileBoard:
         return self.move([move_object[1], move_object[0]])
 
     def isSolved(self):
-        return self.heuristic == 0
+        return round(self.heuristic) == 0
 
     def gCost(self):
         return 1
@@ -111,6 +111,26 @@ class SlidingTileBoard:
         tileValue = self.board[tileCoordinate[0]][tileCoordinate[1]]
         return round((tileValue + 2) / (tileValue + 1), 3)
 
+    def generateValidMoves(self, parent_move: tuple):
+        listOfValidMoves = []
+        # Enable for debugging
+        # assert len(self.EmptyCellCoordinates) > 0
+        destination = self.EmptyCellCoordinates
+        x = self.EmptyCellCoordinates[0]
+        y = self.EmptyCellCoordinates[1]
+        if x > 0 and parent_move[1] != (x - 1, y):
+            listOfValidMoves.append(((x - 1, y), destination))
+        if x < 3 and parent_move[1] != (x + 1, y):
+            listOfValidMoves.append(((x + 1, y), destination))
+
+        if y > 0 and parent_move[1] != (x, y - 1):
+            listOfValidMoves.append(((x, y - 1), destination))
+        if y < 3 and parent_move[1] != (x, y + 1):
+            listOfValidMoves.append(((x, y + 1), destination))
+
+        return listOfValidMoves
+
+    '''
     def generateValidMoves(self, parent_move: tuple):
 
         allMoves = set()
@@ -131,7 +151,7 @@ class SlidingTileBoard:
         if parent_move[0][0] != -1:
             allMoves.remove((parent_move[1], parent_move[0]))
         return allMoves
-
+    '''
     def serializeBoardToString(self):
         result = ""
         for r in range(4):
