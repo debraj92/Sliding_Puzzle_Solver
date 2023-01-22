@@ -35,9 +35,8 @@ class BTS_SlidingTilePuzzle:
         source = move[0]
         destination = move[1]
         actual_coordinates = gameState.actual_xy[gameState.board[source[0]][source[1]]]
-        oldHeuristic = gameState.manhattanDistance(source, [actual_coordinates[0], actual_coordinates[1]])
-        newHeuristic = gameState.manhattanDistance(destination, [actual_coordinates[0], actual_coordinates[1]])
-        return gameState.gCostWeighted(source) + (newHeuristic - oldHeuristic) * gameState.gCostWeighted(source)
+        return (1 + gameState.manhattanDistanceCache[destination + actual_coordinates] - gameState.manhattanDistanceCache[
+            source + actual_coordinates]) * gameState.gCostWeighted(source)
 
     def limitedDfs(self, gameState: SlidingTileBoard, pathCost: int, costLimit: float, nodesLimit: int,
                    path: list, parent_move: tuple):
@@ -90,8 +89,7 @@ class BTS_SlidingTilePuzzle:
                         cached[2] = nodeWidth
                 else:
                     isCurrentNodeBetterThanCached = True
-                    if not self.dontUpdateCache:
-                        self.visited[gameState.hashValue] = [g_cost, costLimit, nodeWidth]
+                    self.visited[gameState.hashValue] = [g_cost, costLimit, nodeWidth]
 
                 if isCurrentNodeBetterThanCached:
                     found = self.limitedDfs(gameState, g_cost, costLimit, nodesLimit, path, move)
@@ -146,7 +144,7 @@ class BTS_SlidingTilePuzzle:
             '''
             Exponential Search
             '''
-            delta = 0
+            delta = 1
             while self.fCostBound[0] != self.fCostBound[1] and self.nodes < (self.c1 * self.nodeBudget):
                 nextCost = self.fCostBound[0] + 2 ** delta
                 delta = delta + 1
@@ -161,7 +159,6 @@ class BTS_SlidingTilePuzzle:
                     self.nodes < (self.c1 * self.nodeBudget) or self.nodes >= (self.c2 * self.nodeBudget)):
                 nextCost = (self.fCostBound[0] + self.fCostBound[1]) / 2
                 self.solutionLowerBound = self.fCostBound[0]
-                #self.visited.clear()
                 self.fCostBound = self.search(gameState, nextCost, (self.c2 * self.nodeBudget), path)
 
             self.nodeBudget = max(self.nodes, (self.c1 * self.nodeBudget))

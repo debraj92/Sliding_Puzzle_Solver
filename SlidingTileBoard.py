@@ -10,6 +10,7 @@ class SlidingTileBoard:
         self.heuristic = 0
         self.pathLength = 0
         self.actual_xy = {}
+        self.manhattanDistanceCache = {}
 
         k = 0
         for r in range(4):
@@ -31,6 +32,12 @@ class SlidingTileBoard:
                 actual_coordinates = self.actual_xy[self.board[r][c]]
                 self.heuristic += self.manhattanDistance((r, c), actual_coordinates) * self.gCostWeighted((r, c))
 
+        for i in range(1, 16):
+            actual_coordinates = self.actual_xy[i]
+            for r in range(4):
+                for c in range(4):
+                    self.manhattanDistanceCache[(r, c, actual_coordinates[0], actual_coordinates[1])] = self.manhattanDistance((r, c), actual_coordinates)
+
     def printBoard(self):
         for r in range(4):
             for c in range(4):
@@ -48,7 +55,7 @@ class SlidingTileBoard:
     def getY(self, coordinates: list) -> int:
         return coordinates[1]
 
-    def manhattanDistance(self, source: list, destination: list):
+    def manhattanDistance(self, source: tuple, destination: tuple):
         return abs(source[0] - destination[0]) + abs(source[1] - destination[1])
 
     def getTile(self, coordinates: list) -> int:
@@ -74,9 +81,9 @@ class SlidingTileBoard:
 
         # update heuristic
         actual_coordinates = self.actual_xy[self.board[source[0]][source[1]]]
-        oldHeuristic = self.manhattanDistance(source, [actual_coordinates[0], actual_coordinates[1]])
-        newHeuristic = self.manhattanDistance(destination, [actual_coordinates[0], actual_coordinates[1]])
-        self.heuristic += (newHeuristic - oldHeuristic) * self.gCostWeighted(source)
+
+        self.heuristic += (self.manhattanDistanceCache[destination + actual_coordinates] - self.manhattanDistanceCache[
+            source + actual_coordinates]) * self.gCostWeighted(source)
 
         # remove old hash
         self.hashValue ^= (source[0] * 4 + source[1]) << (self.board[source[0]][source[1]] * 4)
@@ -99,7 +106,7 @@ class SlidingTileBoard:
             return move_err
         '''
 
-        return self.move([move_object[1], move_object[0]])
+        return self.move((move_object[1], move_object[0]))
 
     def isSolved(self):
         return round(self.heuristic) == 0
@@ -130,28 +137,6 @@ class SlidingTileBoard:
 
         return listOfValidMoves
 
-    '''
-    def generateValidMoves(self, parent_move: tuple):
-
-        allMoves = set()
-        x = self.EmptyCellCoordinates[0]
-        y = self.EmptyCellCoordinates[1]
-        destination = self.EmptyCellCoordinates
-
-        if x > 0:
-            allMoves.add(((x - 1, y), destination))
-        if x < 3:
-            allMoves.add(((x + 1, y), destination))
-
-        if y > 0:
-            allMoves.add(((x, y - 1), destination))
-        if y < 3:
-            allMoves.add(((x, y + 1), destination))
-
-        if parent_move[0][0] != -1:
-            allMoves.remove((parent_move[1], parent_move[0]))
-        return allMoves
-    '''
     def serializeBoardToString(self):
         result = ""
         for r in range(4):
