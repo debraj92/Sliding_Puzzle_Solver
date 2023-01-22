@@ -27,7 +27,7 @@ class SlidingTileGame:
             gameState.printBoard()
             print('\n')
 
-    def sortFunction(self, move: list, gameState: SlidingTileBoard):
+    def sortFunction(self, move: tuple, gameState: SlidingTileBoard):
         source = move[0]
         destination = move[1]
         actual_coordinates = gameState.actual_xy[gameState.board[source[0]][source[1]]]
@@ -35,13 +35,13 @@ class SlidingTileGame:
         newHeuristic = gameState.manhattanDistance(destination, [actual_coordinates[0], actual_coordinates[1]])
         return newHeuristic - oldHeuristic
 
-    def search(self, gameState: SlidingTileBoard, path_cost: int, bound: int, visited: dict, path: list, parent_move_destination: list):
+    def search(self, gameState: SlidingTileBoard, path_cost: int, bound: int, visited: dict, path: list, parent_move: tuple):
 
         if gameState.isSolved():
             path.append(gameState.serializeBoardToString())
             return True
 
-        validMoves = gameState.generateValidMoves(parent_move_destination)
+        validMoves = gameState.generateValidMoves(parent_move)
         validMoves = sorted(validMoves, key=lambda m: self.sortFunction(m, gameState))
 
         for move in validMoves:
@@ -76,7 +76,7 @@ class SlidingTileGame:
                     visited[gameState.hashValue] = [g_cost, bound]
 
                 if isCurrentNodeBetterThanCached:
-                    found = self.search(gameState, g_cost, bound, visited, path, move[1])
+                    found = self.search(gameState, g_cost, bound, visited, path, move)
                     if found:
                         path.append(gameState.serializeBoardToString())
 
@@ -114,7 +114,7 @@ class SlidingTileGame:
             visited[gameState.hashValue] = [0, bound]
             self.nextBound = self.INFINITY
 
-            found = self.search(gameState, 0, bound, visited, path, [-1, -1])
+            found = self.search(gameState, 0, bound, visited, path, ((-1, -1), ()))
             if found:
                 path.append(gameState.serializeBoardToString())
 
