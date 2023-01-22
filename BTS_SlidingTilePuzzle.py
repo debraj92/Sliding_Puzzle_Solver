@@ -161,7 +161,7 @@ class BTS_SlidingTilePuzzle:
             '''
             self.dontUpdateCache = True
             while self.fCostBound[0] != self.fCostBound[1] and (
-                    self.nodes < (self.c1 * self.nodeBudget) or self.nodes >= (self.c2 * self.nodeBudget)):
+                    self.nodes < (self.c1 * self.nodeBudget) or self.nodes > (self.c2 * self.nodeBudget)):
                 nextCost = (self.fCostBound[0] + self.fCostBound[1]) / 2
                 self.solutionLowerBound = self.fCostBound[0]
                 self.fCostBound = self.search(gameState, nextCost, (self.c2 * self.nodeBudget), path)
