@@ -79,17 +79,18 @@ class BTS_SlidingTilePuzzle:
                 costExceeded = True
             else:
                 cached = self.visited.get(gameState.hashValue)
+                nodeWidth = nodesLimit - self.nodes
                 if cached is not None:
                     isCurrentNodeBetterThanCached = (g_cost < cached[0]) or (
-                        (g_cost == cached[0]) and (self.dontUpdateCache or (cached[1] < costLimit) or (cached[2] < nodesLimit)))
+                        (g_cost == cached[0]) and ((cached[1] < costLimit) or (cached[2] < nodeWidth)))
                     if not self.dontUpdateCache and isCurrentNodeBetterThanCached:
                         cached[0] = g_cost
                         cached[1] = costLimit
-                        cached[2] = nodesLimit
+                        cached[2] = nodeWidth
                 else:
                     isCurrentNodeBetterThanCached = True
                     if not self.dontUpdateCache:
-                        self.visited[gameState.hashValue] = [g_cost, costLimit, nodesLimit]
+                        self.visited[gameState.hashValue] = [g_cost, costLimit, nodeWidth]
 
                 if isCurrentNodeBetterThanCached:
                     found = self.limitedDfs(gameState, g_cost, costLimit, nodesLimit, path, move[1])
@@ -127,6 +128,10 @@ class BTS_SlidingTilePuzzle:
         self.solutionCost = self.INFINITY
         self.nodeBudget = 0
 
+        t1 = 0
+        t2 = 0
+        t3 = 0
+
         while self.solutionCost > self.fCostBound[0]:
             self.solutionLowerBound = self.fCostBound[0]
             self.fCostBound[1] = self.INFINITY
@@ -135,15 +140,18 @@ class BTS_SlidingTilePuzzle:
             '''
             Regular IDA*
             '''
+            t1_s = time.time()
             self.dontUpdateCache = False
             self.fCostBound = self.search(gameState, self.fCostBound[0], self.INFINITY, path)
             if self.nodes >= (self.c1 * self.nodeBudget):
                 self.nodeBudget = self.nodes
                 continue
+            t1 += time.time() - t1_s
 
             '''
             Exponential Search
             '''
+            t2_s = time.time()
             delta = 0
             while self.fCostBound[0] != self.fCostBound[1] and self.nodes < (self.c1 * self.nodeBudget):
                 nextCost = self.fCostBound[0] + 2 ** delta
@@ -151,9 +159,11 @@ class BTS_SlidingTilePuzzle:
                 self.solutionLowerBound = self.fCostBound[0]
                 self.fCostBound = self.search(gameState, nextCost, (self.c2 * self.nodeBudget), path)
 
+            t2 += time.time() - t2_s
             '''
             Binary Search
             '''
+            t3_s = time.time()
             self.dontUpdateCache = True
             while self.fCostBound[0] != self.fCostBound[1] and (
                     self.nodes < (self.c1 * self.nodeBudget) or self.nodes >= (self.c2 * self.nodeBudget)):
@@ -162,10 +172,18 @@ class BTS_SlidingTilePuzzle:
                 #self.visited.clear()
                 self.fCostBound = self.search(gameState, nextCost, (self.c2 * self.nodeBudget), path)
 
+            t3 += time.time() - t3_s
             self.nodeBudget = max(self.nodes, (self.c1 * self.nodeBudget))
 
             if self.solutionCost == self.fCostBound[0]:
+                print('Time IDA* ', t1)
+                print('Exp Search ', t2)
+                print('Bin Search ', t3)
                 return
+
+        print('Time IDA* ', t1)
+        print('Exp Search ', t2)
+        print('Bin Search ', t3)
 
     def solveAllGamesWithBTS(self):
         start_time = time.time()
