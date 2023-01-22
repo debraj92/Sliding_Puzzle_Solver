@@ -31,17 +31,8 @@ class BTS_SlidingTilePuzzle:
                 gameTiles = [eval(i) for i in game]
                 self.games.append(gameTiles)
 
-    def sortFunction(self, move: list, gameState: SlidingTileBoard):
-        source = move[0]
-        destination = move[1]
-        actual_coordinates = gameState.actual_xy[gameState.board[source[0]][source[1]]]
-        oldHeuristic = gameState.manhattanDistance(source, [actual_coordinates[0], actual_coordinates[1]])
-        newHeuristic = gameState.manhattanDistance(destination, [actual_coordinates[0], actual_coordinates[1]])
-        gcost = gameState.gCostWeighted(source)
-        return gcost + newHeuristic - oldHeuristic
-
     def limitedDfs(self, gameState: SlidingTileBoard, pathCost: int, costLimit: float, nodesLimit: int,
-                   path: list, parent_move_destination: list):
+                   path: list, parent_move: tuple):
 
         if self.solutionCost == self.solutionLowerBound:
             return False
@@ -53,8 +44,7 @@ class BTS_SlidingTilePuzzle:
         if self.nodes >= nodesLimit:
             return False
 
-        validMoves = gameState.generateValidMoves(parent_move_destination)
-        validMoves = sorted(validMoves, key=lambda m: self.sortFunction(m, gameState))
+        validMoves = gameState.generateValidMoves(parent_move)
         self.nodes += 1
         for move in validMoves:
             moved = gameState.move(move)
@@ -69,11 +59,9 @@ class BTS_SlidingTilePuzzle:
                 gameState.undoMove(move, moved)
                 return True
 
-            costExceeded = False
             found = False
             if f > costLimit:
                 self.f_above = min(self.f_above, f)
-                costExceeded = True
             elif f >= self.solutionCost:
                 self.f_below = self.solutionCost
                 costExceeded = True
@@ -93,7 +81,7 @@ class BTS_SlidingTilePuzzle:
                         self.visited[gameState.hashValue] = [g_cost, costLimit, nodeWidth]
 
                 if isCurrentNodeBetterThanCached:
-                    found = self.limitedDfs(gameState, g_cost, costLimit, nodesLimit, path, move[1])
+                    found = self.limitedDfs(gameState, g_cost, costLimit, nodesLimit, path, move)
                     if found:
                         path.append(gameState.serializeBoardToString())
 
@@ -102,16 +90,13 @@ class BTS_SlidingTilePuzzle:
             if found:
                 return found
 
-            if costExceeded:
-                break
-
         return False
 
     def search(self, gameState: SlidingTileBoard, costLimit: float, nodeLimit: int, path: list):
         self.f_below = 0
         self.f_above = self.INFINITY
         self.nodes = 0
-        self.limitedDfs(gameState, 0, costLimit, nodeLimit, path, [-1, -1])
+        self.limitedDfs(gameState, 0, costLimit, nodeLimit, path, ((-1, -1), ()))
         if self.nodes >= nodeLimit:
             if self.fCostBound[0] < self.f_below:
                 return [self.fCostBound[0], self.f_below]

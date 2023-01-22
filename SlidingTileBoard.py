@@ -6,7 +6,7 @@ class SlidingTileBoard:
     def __init__(self, tile_board: list):
         self.board = []
         self.hashValue = 0
-        self.EmptyCellCoordinates = []
+        self.EmptyCellCoordinates = tuple()
         self.heuristic = 0
         self.pathLength = 0
         self.actual_xy = {}
@@ -16,9 +16,9 @@ class SlidingTileBoard:
             row = []
             for c in range(4):
                 row.append(tile_board[k])
-                self.actual_xy[k] = [r, c]
+                self.actual_xy[k] = (r, c)
                 if tile_board[k] == 0:
-                    self.EmptyCellCoordinates = [r, c]
+                    self.EmptyCellCoordinates = (r, c)
                 k += 1
             self.board.append(row)
 
@@ -29,7 +29,7 @@ class SlidingTileBoard:
                     continue
                 self.hashValue ^= (r * 4 + c) << (tileValue * 4)
                 actual_coordinates = self.actual_xy[self.board[r][c]]
-                self.heuristic += self.manhattanDistance([r, c], [actual_coordinates[0], actual_coordinates[1]])
+                self.heuristic += self.manhattanDistance((r, c), actual_coordinates)
 
     def printBoard(self):
         for r in range(4):
@@ -57,7 +57,7 @@ class SlidingTileBoard:
     def setTile(self, coordinates, tile_value) -> int:
         self.board[self.getX(coordinates)][self.getY(coordinates)] = tile_value
 
-    def move(self, move_object: list) -> int:
+    def move(self, move_object: tuple) -> int:
         source = move_object[0]
         destination = move_object[1]
 
@@ -91,7 +91,7 @@ class SlidingTileBoard:
 
         return 1
 
-    def undoMove(self, move_object, move_err):
+    def undoMove(self, move_object: tuple, move_err):
         # Enable when debugging
         '''
         if move_err == -1:
@@ -107,28 +107,30 @@ class SlidingTileBoard:
     def gCost(self):
         return 1
 
-    def gCostWeighted(self, tileCoordinate: list):
+    def gCostWeighted(self, tileCoordinate: tuple):
         tileValue = self.board[tileCoordinate[0]][tileCoordinate[1]]
         return round((tileValue + 2) / (tileValue + 1), 3)
 
-    def generateValidMoves(self, parent_move_destination: list):
-        listOfValidMoves = []
-        # Enable for debugging
-        # assert len(self.EmptyCellCoordinates) > 0
+    def generateValidMoves(self, parent_move: tuple):
+
+        allMoves = set()
+        x = self.EmptyCellCoordinates[0]
+        y = self.EmptyCellCoordinates[1]
         destination = self.EmptyCellCoordinates
-        x = self.getX(self.EmptyCellCoordinates)
-        y = self.getY(self.EmptyCellCoordinates)
-        if x > 0 and parent_move_destination != [x - 1, y]:
-            listOfValidMoves.append([[x - 1, y], destination])
-        if x < 3 and parent_move_destination != [x + 1, y]:
-            listOfValidMoves.append([[x + 1, y], destination])
 
-        if y > 0 and parent_move_destination != [x, y - 1]:
-            listOfValidMoves.append([[x, y - 1], destination])
-        if y < 3 and parent_move_destination != [x, y + 1]:
-            listOfValidMoves.append([[x, y + 1], destination])
+        if x > 0:
+            allMoves.add(((x - 1, y), destination))
+        if x < 3:
+            allMoves.add(((x + 1, y), destination))
 
-        return listOfValidMoves
+        if y > 0:
+            allMoves.add(((x, y - 1), destination))
+        if y < 3:
+            allMoves.add(((x, y + 1), destination))
+
+        if parent_move[0][0] != -1:
+            allMoves.remove((parent_move[1], parent_move[0]))
+        return allMoves
 
     def serializeBoardToString(self):
         result = ""
