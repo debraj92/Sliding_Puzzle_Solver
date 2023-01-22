@@ -16,7 +16,7 @@ class BTS_SlidingTilePuzzle:
         self.f_above = self.INFINITY
         self.f_below = 0
         self.c1 = 2
-        self.c2 = 8
+        self.c2 = 9.5
         self.visited = {}
         self.dontUpdateCache = False
 
@@ -37,10 +37,12 @@ class BTS_SlidingTilePuzzle:
         actual_coordinates = gameState.actual_xy[gameState.board[source[0]][source[1]]]
 
         if gameState.NON_UNIFORM_COST:
-            return (1 + gameState.manhattanDistanceCache[destination + actual_coordinates] - gameState.manhattanDistanceCache[
-                source + actual_coordinates]) * gameState.gCostWeighted(source)
+            return (1 + gameState.manhattanDistanceCache[destination + actual_coordinates] -
+                    gameState.manhattanDistanceCache[
+                        source + actual_coordinates]) * gameState.gCostWeighted(source)
 
-        return gameState.manhattanDistanceCache[destination + actual_coordinates] - gameState.manhattanDistanceCache[source + actual_coordinates]
+        return gameState.manhattanDistanceCache[destination + actual_coordinates] - gameState.manhattanDistanceCache[
+            source + actual_coordinates]
 
     def limitedDfs(self, gameState: SlidingTileBoard, pathCost: int, costLimit: float, nodesLimit: int,
                    path: list, parent_move: tuple):
@@ -85,13 +87,14 @@ class BTS_SlidingTilePuzzle:
             else:
                 cached = self.visited.get(gameState.hashValue)
                 nodeWidth = nodesLimit - self.nodes
+                isCurrentNodeBetterThanCached = False
                 if cached is not None:
                     isCurrentNodeBetterThanCached = (g_cost < cached[0]) or (
-                        (g_cost == cached[0]) and ((cached[1] < costLimit) or (cached[2] < nodeWidth)))
-                    if not self.dontUpdateCache and isCurrentNodeBetterThanCached:
+                            (g_cost == cached[0]) and ((cached[1] < costLimit) or (cached[2] < nodeWidth)))
+                    if (not self.dontUpdateCache) and isCurrentNodeBetterThanCached:
                         cached[0] = g_cost
-                        cached[1] = costLimit
-                        cached[2] = nodeWidth
+                        cached[1] = max(costLimit, cached[1])
+                        cached[2] = max(nodeWidth, cached[2])
                 else:
                     isCurrentNodeBetterThanCached = True
                     self.visited[gameState.hashValue] = [g_cost, costLimit, nodeWidth]
@@ -117,12 +120,15 @@ class BTS_SlidingTilePuzzle:
         self.nodes = 0
         self.limitedDfs(gameState, 0, costLimit, nodeLimit, path, ((-1, -1), ()))
         if self.nodes >= nodeLimit:
+            # For Bin Search
             if self.fCostBound[0] < self.f_below:
                 return [self.fCostBound[0], self.f_below]
             return [0, self.f_below]
         elif self.f_below >= self.solutionCost:
+            # Solved
             return [self.solutionCost, self.solutionCost]
         else:
+            # For next IDA*
             if self.fCostBound[1] > self.f_above:
                 return [self.f_above, self.fCostBound[1]]
             return [self.f_above, self.INFINITY]
@@ -136,11 +142,11 @@ class BTS_SlidingTilePuzzle:
             self.solutionLowerBound = self.fCostBound[0]
             self.fCostBound[1] = self.INFINITY
 
-            print('bound ', self.solutionLowerBound)
             '''
             Regular IDA*
             '''
             self.dontUpdateCache = False
+            print('IDA* bound ', self.fCostBound[0])
             self.fCostBound = self.search(gameState, self.fCostBound[0], self.INFINITY, path)
             if self.nodes >= (self.c1 * self.nodeBudget):
                 self.nodeBudget = self.nodes
@@ -160,11 +166,15 @@ class BTS_SlidingTilePuzzle:
             Binary Search
             '''
             self.dontUpdateCache = True
+            binSearchCount = 0
             while self.fCostBound[0] != self.fCostBound[1] and (
-                    self.nodes < (self.c1 * self.nodeBudget) or self.nodes > (self.c2 * self.nodeBudget)):
+                    self.nodes < (self.c1 * self.nodeBudget) or self.nodes >= (self.c2 * self.nodeBudget)):
                 nextCost = (self.fCostBound[0] + self.fCostBound[1]) / 2
                 self.solutionLowerBound = self.fCostBound[0]
                 self.fCostBound = self.search(gameState, nextCost, (self.c2 * self.nodeBudget), path)
+                binSearchCount += 1
+                if binSearchCount >= 2:
+                    break
 
             self.nodeBudget = max(self.nodes, (self.c1 * self.nodeBudget))
 
