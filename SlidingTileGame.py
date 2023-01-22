@@ -31,9 +31,9 @@ class SlidingTileGame:
         source = move[0]
         destination = move[1]
         actual_coordinates = gameState.actual_xy[gameState.board[source[0]][source[1]]]
-        oldHeuristic = gameState.manhattanDistance(source, [actual_coordinates[0], actual_coordinates[1]])
-        newHeuristic = gameState.manhattanDistance(destination, [actual_coordinates[0], actual_coordinates[1]])
-        return newHeuristic - oldHeuristic
+        return (gameState.manhattanDistanceCache[destination + actual_coordinates] -
+                gameState.manhattanDistanceCache[
+                    source + actual_coordinates])
 
     def search(self, gameState: SlidingTileBoard, path_cost: int, bound: int, visited: dict, path: list, parent_move: tuple):
 
@@ -55,7 +55,6 @@ class SlidingTileGame:
             boundExceeded = False
             found = False
 
-            #g_cost = path_cost + gameState.gCostWeighted(move[1])
             g_cost = path_cost + gameState.gCost()
             f = g_cost + gameState.heuristic
 
@@ -93,7 +92,7 @@ class SlidingTileGame:
     def solveAllGamesWithIDA_Star(self):
         self.nextBound = self.INFINITY
         start_time = time.time()
-        game = SlidingTileBoard(self.games[0])
+        game = SlidingTileBoard(self.games[0], False)
         path = []
         pathFound = self.solveWithIDA_Star(game, path)
         duration = time.time() - start_time
@@ -130,7 +129,7 @@ class SlidingTileGame:
         for tileBoard in path:
             tileBoard = tileBoard.strip('|').split('|')
             gameTiles = [eval(i) for i in tileBoard]
-            slidingTileBoardInstance = SlidingTileBoard(gameTiles)
+            slidingTileBoardInstance = SlidingTileBoard(gameTiles, False)
             slidingTileBoardInstance.printBoard()
 
         print('Total moves ', len(path))

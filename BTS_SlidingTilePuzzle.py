@@ -35,8 +35,12 @@ class BTS_SlidingTilePuzzle:
         source = move[0]
         destination = move[1]
         actual_coordinates = gameState.actual_xy[gameState.board[source[0]][source[1]]]
-        return (1 + gameState.manhattanDistanceCache[destination + actual_coordinates] - gameState.manhattanDistanceCache[
-            source + actual_coordinates]) * gameState.gCostWeighted(source)
+
+        if gameState.NON_UNIFORM_COST:
+            return (1 + gameState.manhattanDistanceCache[destination + actual_coordinates] - gameState.manhattanDistanceCache[
+                source + actual_coordinates]) * gameState.gCostWeighted(source)
+
+        return gameState.manhattanDistanceCache[destination + actual_coordinates] - gameState.manhattanDistanceCache[source + actual_coordinates]
 
     def limitedDfs(self, gameState: SlidingTileBoard, pathCost: int, costLimit: float, nodesLimit: int,
                    path: list, parent_move: tuple):
@@ -57,9 +61,10 @@ class BTS_SlidingTilePuzzle:
         self.nodes += 1
         for move in validMoves:
             moved = gameState.move(move)
-
-            g_cost = pathCost + gameState.gCostWeighted(move[1])
-            #g_cost = pathCost + gameState.gCost()
+            if gameState.NON_UNIFORM_COST:
+                g_cost = pathCost + gameState.gCostWeighted(move[1])
+            else:
+                g_cost = pathCost + gameState.gCost()
             f = g_cost + gameState.heuristic
 
             if gameState.isSolved():
@@ -168,7 +173,7 @@ class BTS_SlidingTilePuzzle:
 
     def solveAllGamesWithBTS(self):
         start_time = time.time()
-        game = SlidingTileBoard(self.games[0])
+        game = SlidingTileBoard(self.games[0], True)
         path = []
         self.solveWithBts(game, path)
         duration = time.time() - start_time
@@ -183,7 +188,7 @@ class BTS_SlidingTilePuzzle:
         for tileBoard in path:
             tileBoard = tileBoard.strip('|').split('|')
             gameTiles = [eval(i) for i in tileBoard]
-            slidingTileBoardInstance = SlidingTileBoard(gameTiles)
+            slidingTileBoardInstance = SlidingTileBoard(gameTiles, True)
             slidingTileBoardInstance.printBoard()
 
         print('Total moves ', len(path))

@@ -3,7 +3,7 @@ import math
 
 class SlidingTileBoard:
 
-    def __init__(self, tile_board: list):
+    def __init__(self, tile_board: list, costType: bool):
         self.board = []
         self.hashValue = 0
         self.EmptyCellCoordinates = tuple()
@@ -11,6 +11,7 @@ class SlidingTileBoard:
         self.pathLength = 0
         self.actual_xy = {}
         self.manhattanDistanceCache = {}
+        self.NON_UNIFORM_COST = costType
 
         k = 0
         for r in range(4):
@@ -30,7 +31,10 @@ class SlidingTileBoard:
                     continue
                 self.hashValue ^= (r * 4 + c) << (tileValue * 4)
                 actual_coordinates = self.actual_xy[self.board[r][c]]
-                self.heuristic += self.manhattanDistance((r, c), actual_coordinates) * self.gCostWeighted((r, c))
+                if self.NON_UNIFORM_COST:
+                    self.heuristic += self.manhattanDistance((r, c), actual_coordinates) * self.gCostWeighted((r, c))
+                else:
+                    self.heuristic += self.manhattanDistance((r, c), actual_coordinates)
 
         for i in range(1, 16):
             actual_coordinates = self.actual_xy[i]
@@ -81,9 +85,12 @@ class SlidingTileBoard:
 
         # update heuristic
         actual_coordinates = self.actual_xy[self.board[source[0]][source[1]]]
-
-        self.heuristic += (self.manhattanDistanceCache[destination + actual_coordinates] - self.manhattanDistanceCache[
-            source + actual_coordinates]) * self.gCostWeighted(source)
+        if self.NON_UNIFORM_COST:
+            self.heuristic += (self.manhattanDistanceCache[destination + actual_coordinates] - self.manhattanDistanceCache[
+                source + actual_coordinates]) * self.gCostWeighted(source)
+        else:
+            self.heuristic += self.manhattanDistanceCache[destination + actual_coordinates] - self.manhattanDistanceCache[
+                    source + actual_coordinates]
 
         # remove old hash
         self.hashValue ^= (source[0] * 4 + source[1]) << (self.board[source[0]][source[1]] * 4)
