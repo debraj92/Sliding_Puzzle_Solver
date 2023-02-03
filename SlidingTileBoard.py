@@ -148,6 +148,6 @@ class SlidingTileBoard:
         result = ""
         for r in range(4):
             for c in range(4):
-                result += str(self.getTile([r, c])) + "|"
+                result += str(self.getTile([r, c])) + " "
 
         return result
