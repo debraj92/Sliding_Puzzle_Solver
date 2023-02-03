@@ -34,7 +34,7 @@ class SlidingTileBoard:
                 if self.NON_UNIFORM_COST:
                     self.heuristic += self.manhattanDistance((r, c), actual_coordinates) * self.gCostWeighted((r, c))
                 else:
-                    self.heuristic += self.manhattanDistance((r, c), actual_coordinates)
+                    self.heuristic += self.manhattanDistance((r, c), actual_coordinates) * self.gCost()
 
         for i in range(1, 16):
             actual_coordinates = self.actual_xy[i]
@@ -142,7 +142,7 @@ class SlidingTileBoard:
         if y < 3 and parent_move[1] != (x, y + 1):
             listOfValidMoves.append(((x, y + 1), destination))
 
-        return listOfValidMoves
+        return tuple(listOfValidMoves)
 
     def serializeBoardToString(self):
         result = ""

@@ -30,27 +30,17 @@ class SlidingTileGame:
             gameState.printBoard()
             print('\n')
 
-    def sortFunction(self, move: tuple, gameState: SlidingTileBoard):
-        source = move[0]
-        destination = move[1]
-        actual_coordinates = gameState.actual_xy[gameState.board[source[0]][source[1]]]
-        return (gameState.manhattanDistanceCache[destination + actual_coordinates] -
-                gameState.manhattanDistanceCache[
-                    source + actual_coordinates])
-
     def search(self, gameState: SlidingTileBoard, path_cost: int, bound: int, visited: dict, parent_move: tuple):
 
         if gameState.isSolved():
             return True
 
         validMoves = gameState.generateValidMoves(parent_move)
-        validMoves = sorted(validMoves, key=lambda m: self.sortFunction(m, gameState))
         self.NodesExpanded += 1
         self.NodesGenerated += len(validMoves)
         for move in validMoves:
             moved = gameState.move(move)
 
-            boundExceeded = False
             found = False
 
             g_cost = path_cost + gameState.gCost()
@@ -59,12 +49,11 @@ class SlidingTileGame:
             if f > bound:
                 if f < self.nextBound:
                     self.nextBound = f
-                boundExceeded = True
 
             else:
                 cached = visited.get(gameState.hashValue)
                 if cached is not None:
-                    isCurrentNodeBetterThanCached = (g_cost < cached[0]) or (cached[1] < bound and (g_cost == cached[0]))
+                    isCurrentNodeBetterThanCached = (g_cost < cached[0]) or (g_cost == cached[0] and cached[1] < bound)
                     if isCurrentNodeBetterThanCached:
                         cached[0] = g_cost
                         cached[1] = bound
@@ -82,9 +71,6 @@ class SlidingTileGame:
             if found:
                 return found
 
-            if boundExceeded:
-                break
-
         return False
 
     def solveAllGamesWithIDA_Star(self):
@@ -94,7 +80,8 @@ class SlidingTileGame:
         pathFound = self.solveWithIDA_Star(game)
         duration = round(time.time() - start_time, 3)
         if pathFound:
-            print(f'IDA*: {duration}s elapsed; {self.NodesExpanded} expanded; {self.NodesGenerated} generated; Solution Length {self.pathLength}')
+            print(
+                f'IDA*: {duration}s elapsed; {self.NodesExpanded} expanded; {self.NodesGenerated} generated; Solution Length {self.pathLength}')
 
     def solveWithIDA_Star(self, gameState: SlidingTileBoard):
         bound = gameState.heuristic
@@ -104,7 +91,8 @@ class SlidingTileGame:
         visited = {}
         found = False
         while bound < self.INFINITY and not found:
-            print(f'Starting iteration with bound {bound}; {self.NodesExpanded} expanded  {self.NodesGenerated} generated')
+            print(
+                f'Starting iteration with bound {bound}; {self.NodesExpanded} expanded  {self.NodesGenerated} generated')
             visited[gameState.hashValue] = [0, bound]
             self.nextBound = self.INFINITY
             found = self.search(gameState, 0, bound, visited, ((-1, -1), ()))
