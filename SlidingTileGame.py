@@ -13,6 +13,7 @@ class SlidingTileGame:
         self.NodesGenerated = 0
         self.pathLength = 0
         self.visited = {}
+        self.gameState = None
 
     def fetchAllGames(self):
         korfInstancesFilename = "korf100_run.txt"
@@ -31,28 +32,28 @@ class SlidingTileGame:
             gameState.printBoard()
             print('\n')
 
-    def search(self, gameState: SlidingTileBoard, path_cost: int, bound: int, parent_move: tuple):
+    def search(self, path_cost: int, bound: int, parent_move: tuple):
 
-        if gameState.isSolved():
+        if self.gameState.isSolved():
             return True
 
-        validMoves = gameState.generateValidMoves(parent_move)
+        validMoves = self.gameState.generateValidMoves(parent_move)
         self.NodesExpanded += 1
         self.NodesGenerated += len(validMoves)
         for move in validMoves:
-            moved = gameState.move(move)
+            moved = self.gameState.move(move)
 
             found = False
 
-            g_cost = path_cost + gameState.gCost()
-            f = g_cost + gameState.heuristic
+            g_cost = path_cost + self.gameState.gCost()
+            f = g_cost + self.gameState.heuristic
 
             if f > bound:
                 if f < self.nextBound:
                     self.nextBound = f
 
             else:
-                cached = self.visited.get(gameState.hashValue)
+                cached = self.visited.get(self.gameState.hashValue)
                 if cached is not None:
                     isCurrentNodeBetterThanCached = (g_cost < cached[0]) or (g_cost == cached[0] and cached[1] < bound)
                     if isCurrentNodeBetterThanCached:
@@ -60,14 +61,14 @@ class SlidingTileGame:
                         cached[1] = bound
                 else:
                     isCurrentNodeBetterThanCached = True
-                    self.visited[gameState.hashValue] = [g_cost, bound]
+                    self.visited[self.gameState.hashValue] = [g_cost, bound]
 
                 if isCurrentNodeBetterThanCached:
-                    found = self.search(gameState, g_cost, bound, move)
+                    found = self.search(g_cost, bound, move)
                     if found:
                         self.pathLength += 1
 
-            gameState.undoMove(move, moved)
+            self.gameState.undoMove(move, moved)
 
             if found:
                 return found
@@ -82,27 +83,27 @@ class SlidingTileGame:
             self.pathLength = 0
             self.visited = {}
             start_time = time.time()
-            game = SlidingTileBoard(game, False)
-            print('Start From ', game.serializeBoardToString())
-            pathFound = self.solveWithIDA_Star(game)
+            self.gameState = SlidingTileBoard(game, False)
+            print('Start From ', self.gameState.serializeBoardToString())
+            pathFound = self.solveWithIDA_Star()
             duration = round(time.time() - start_time, 3)
             if pathFound:
                 print(
                     f'IDA*: {duration}s elapsed; {self.NodesExpanded} expanded; {self.NodesGenerated} generated; Solution Length {self.pathLength}')
                 print()
 
-    def solveWithIDA_Star(self, gameState: SlidingTileBoard):
-        bound = gameState.heuristic
-        if gameState.isSolved():
+    def solveWithIDA_Star(self):
+        bound = self.gameState.heuristic
+        if self.gameState.isSolved():
             return True
 
         found = False
         while bound < self.INFINITY and not found:
             print(
                 f'Starting iteration with bound {bound}; {self.NodesExpanded} expanded  {self.NodesGenerated} generated')
-            self.visited[gameState.hashValue] = [0, bound]
+            self.visited[self.gameState.hashValue] = [0, bound]
             self.nextBound = self.INFINITY
-            found = self.search(gameState, 0, bound, ((-1, -1), ()))
+            found = self.search(0, bound, ((-1, -1), ()))
             bound = self.nextBound
 
         return found
