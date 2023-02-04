@@ -4,6 +4,7 @@
 
 #include "SlidingTilePuzzleIDA_Star.h"
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -52,9 +53,13 @@ bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &
     }
     vector<MovePair> allMoves;
     gameState.generateValidMoves(allMoves, parentMove);
+    sort(allMoves.begin(), allMoves.end(), [this](const MovePair &m1, const MovePair &m2) {
+        return gameState.getDeltaHeuristicFromMove(m1) < gameState.getDeltaHeuristicFromMove(m2);
+    });
     nodesExpanded += 1;
     nodesGenerated += allMoves.size();
     bool found = false;
+    bool exceededBound = false;
     for (auto const &move: allMoves) {
         gameState.move(move.first, move.second);
         auto gCost = pathCost + gameState.getGCost();
@@ -64,6 +69,7 @@ bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &
             if (f < nextBound) {
                 nextBound = f;
             }
+            exceededBound = true;
         } else {
             bool isCurrentNodeBetterThanCached;
             if (auto cachedData = visited.find(gameState.hashValue); cachedData != visited.end()) {
@@ -84,6 +90,9 @@ bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &
         if (found) {
             pathLength += 1;
             return true;
+        }
+        if (exceededBound) {
+            break;
         }
     }
     return false;

@@ -46,6 +46,8 @@ public:
     IntPair getActualCoordinate(IntPair &xy);
 
     string serializeBoard();
+
+    int getDeltaHeuristicFromMove(const MovePair &move);
 };
 
 

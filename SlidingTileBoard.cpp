@@ -112,3 +112,9 @@ string SlidingTileBoard::serializeBoard() {
     return output;
 }
 
+int SlidingTileBoard::getDeltaHeuristicFromMove(const MovePair &move) {
+    auto &from = move.first;
+    auto &to = move.second;
+    return heuristicTable[board[from.first][from.second] - 1][to.first][to.second] - heuristicTable[board[from.first][from.second]  - 1][from.first][from.second];
+}
+
