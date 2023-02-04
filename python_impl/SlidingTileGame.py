@@ -16,7 +16,7 @@ class SlidingTileGame:
         self.gameState = None
 
     def fetchAllGames(self):
-        korfInstancesFilename = "korf100_run.txt"
+        korfInstancesFilename = "../korf100_run.txt"
         with open(korfInstancesFilename) as file:
             for line in file:
                 game = line.rstrip().split()
