@@ -41,6 +41,7 @@ int SlidingTileBoard::getGCost() {
     return 1;
 }
 
+// Never Used
 void SlidingTileBoard::generateValidMoves(vector<MovePair> &allMoves, const MovePair &parentMove) {
     int x = zeroCoordinate.first;
     int y = zeroCoordinate.second;
@@ -116,5 +117,32 @@ int SlidingTileBoard::getDeltaHeuristicFromMove(const MovePair &move) {
     auto &from = move.first;
     auto &to = move.second;
     return heuristicTable[board[from.first][from.second] - 1][to.first][to.second] - heuristicTable[board[from.first][from.second]  - 1][from.first][from.second];
+}
+
+void SlidingTileBoard::initActionCache() {
+    for(int x=0; x < 4; ++x) {
+        for (int y=0; y < 4; ++y) {
+            pair<int, int> targetCoordinate = {x, y};
+            vector<MovePair> allMoves;
+            if (y > 0) {
+                allMoves.emplace_back(make_pair(make_pair(x, y - 1), targetCoordinate));
+            }
+            if (y < 3) {
+                allMoves.emplace_back(make_pair(make_pair(x, y + 1), targetCoordinate));
+            }
+            if (x > 0) {
+                allMoves.emplace_back(make_pair(make_pair(x - 1, y), targetCoordinate));
+            }
+            if (x < 3) {
+                allMoves.emplace_back(make_pair(make_pair(x + 1, y), targetCoordinate));
+            }
+            actionCache[x][y] = allMoves;
+        }
+    }
+
+}
+
+vector<MovePair>& SlidingTileBoard::getActions() {
+    return actionCache[zeroCoordinate.first][zeroCoordinate.second];
 }
 

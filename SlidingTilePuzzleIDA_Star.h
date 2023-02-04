@@ -18,8 +18,6 @@ class SlidingTilePuzzleIDA_Star {
     vector<vector<string>> allGameBoards;
     int nextBound = 0;
     SlidingTileBoard gameState;
-    unordered_map<long long, pair<int, int>> visited;
-
 
     int pathLength = 0;
     int nodesExpanded = 0;

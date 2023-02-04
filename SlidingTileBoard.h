@@ -14,6 +14,7 @@ using namespace std;
 
 using Long = long long;
 using IntPair = pair<int, int>;
+// from and to
 using MovePair = pair<IntPair, IntPair>;
 
 class SlidingTileBoard {
@@ -22,9 +23,12 @@ class SlidingTileBoard {
     unordered_map<int, IntPair> actualXY;
 
 public:
-
+    SlidingTileBoard() {
+        initActionCache();
+    }
     int heuristic = 0;
     int heuristicTable[15][4][4];
+    vector<MovePair> actionCache[4][4];
     Long hashValue;
 
     void initialize(std::vector<string> &tileBoard);
@@ -39,6 +43,7 @@ public:
 
     int getGCost();
 
+    // Never Used
     void generateValidMoves(vector<MovePair> &allMoves, const MovePair &parentMove);
 
     int getTile(IntPair &xy);
@@ -48,6 +53,10 @@ public:
     string serializeBoard();
 
     int getDeltaHeuristicFromMove(const MovePair &move);
+
+    void initActionCache();
+
+    vector<MovePair>& getActions();
 };
 
 

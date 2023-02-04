@@ -28,7 +28,6 @@ void SlidingTilePuzzleIDA_Star::playAllGames() {
         nodesGenerated = 0;
         nodesExpanded = 0;
         nextBound = INT_MAX;
-        visited.clear();
         gameState.initialize(board);
         auto start = chrono::steady_clock::now();
         auto pathFound = solvePuzzle();
@@ -51,48 +50,30 @@ bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &
         cout<<"Final State "<<gameState.serializeBoard()<<endl;
         return true;
     }
-    vector<MovePair> allMoves;
-    gameState.generateValidMoves(allMoves, parentMove);
-    sort(allMoves.begin(), allMoves.end(), [this](const MovePair &m1, const MovePair &m2) {
-        return gameState.getDeltaHeuristicFromMove(m1) < gameState.getDeltaHeuristicFromMove(m2);
-    });
+    auto allMoves = gameState.getActions();
     nodesExpanded += 1;
     nodesGenerated += allMoves.size();
     bool found = false;
-    bool exceededBound = false;
     for (auto const &move: allMoves) {
+        if (parentMove.second.first == move.first.first && parentMove.second.second == move.first.second) {
+            continue;
+        }
+        nodesGenerated += 1;
         gameState.move(move.first, move.second);
         auto gCost = pathCost + gameState.getGCost();
         auto f = gCost + gameState.heuristic;
-
         if (f > bound) {
             if (f < nextBound) {
                 nextBound = f;
             }
-            exceededBound = true;
         } else {
-            bool isCurrentNodeBetterThanCached;
-            if (auto cachedData = visited.find(gameState.hashValue); cachedData != visited.end()) {
-                isCurrentNodeBetterThanCached = (gCost < cachedData->second.first) || (gCost == cachedData->second.first && cachedData->second.second < bound);
-                if (isCurrentNodeBetterThanCached) {
-                    visited[gameState.hashValue] = {gCost, bound};
-                }
-            } else {
-                isCurrentNodeBetterThanCached = true;
-                visited[gameState.hashValue] = {gCost, bound};
-            }
-            if (isCurrentNodeBetterThanCached) {
-                found = search(gCost, bound, move);
-            }
+            found = search(gCost, bound, move);
         }
         //undo move
         gameState.move(move.second, move.first);
         if (found) {
             pathLength += 1;
             return true;
-        }
-        if (exceededBound) {
-            break;
         }
     }
     return false;
@@ -110,7 +91,6 @@ bool SlidingTilePuzzleIDA_Star::solvePuzzle() {
     while (!found and bound < INT_MAX) {
         nextBound = INT_MAX;
         cout<<"Starting iteration with bound "<< bound << "; " << nodesExpanded << " expanded; "<< nodesGenerated << " generated"<<endl;
-        visited.insert({gameState.hashValue, {0, bound}});
         found = search(0, bound, dummyStart);
         bound = nextBound;
     }
