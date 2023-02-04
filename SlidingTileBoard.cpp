@@ -59,6 +59,11 @@ void SlidingTileBoard::generateValidMoves(vector<MovePair> &allMoves, const Move
 }
 
 void SlidingTileBoard::initialize(vector<string> &tileBoard) {
+
+    hashValue = 0;
+    actualXY.clear();
+    heuristic = 0;
+
     int k = 0;
     for(int r=0; r<4; ++r) {
         for(int c=0; c<4; ++c) {
@@ -89,11 +94,21 @@ void SlidingTileBoard::initialize(vector<string> &tileBoard) {
     }
 }
 
-int SlidingTileBoard::getTile(IntPair xy) {
+int SlidingTileBoard::getTile(IntPair &xy) {
     return board[xy.first][xy.second];
 }
 
-IntPair SlidingTileBoard::getActualCoordinate(IntPair xy) {
+IntPair SlidingTileBoard::getActualCoordinate(IntPair &xy) {
     return actualXY.at(getTile(xy));
+}
+
+string SlidingTileBoard::serializeBoard() {
+    string output;
+    for(auto & r : board) {
+        for (int c : r) {
+            output += " " + to_string(c);
+        }
+    }
+    return output;
 }
 

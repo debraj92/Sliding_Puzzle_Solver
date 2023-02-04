@@ -8,7 +8,7 @@
 using namespace std;
 
 void SlidingTilePuzzleIDA_Star::fetchAllGames() {
-    std::ifstream file( "/Users/debrajray/CLionProjects/658_A1/korf100.txt" );
+    std::ifstream file( "../korf100_run.txt" );
     if (file.is_open()) {
         std::string line;
         while (std::getline(file, line)) {
@@ -22,25 +22,38 @@ void SlidingTilePuzzleIDA_Star::fetchAllGames() {
 }
 
 void SlidingTilePuzzleIDA_Star::playAllGames() {
-    gameState.initialize(allGameBoards[0]);
-    auto start = chrono::steady_clock::now();
-    solvePuzzle();
-    auto end = chrono::steady_clock::now();
-    auto diff = end - start;
-    auto sec = chrono::duration <double, milli> (diff).count() / 1000;
-    cout << sec << " s" << endl;
+    for(auto &board: allGameBoards) {
+        pathLength = 0;
+        nodesGenerated = 0;
+        nodesExpanded = 0;
+        nextBound = INT_MAX;
+        visited.clear();
+        gameState.initialize(board);
+        auto start = chrono::steady_clock::now();
+        auto pathFound = solvePuzzle();
+        auto end = chrono::steady_clock::now();
+        auto diff = end - start;
+        auto sec = chrono::duration <double, milli> (diff).count() / 1000;
+        if (pathFound) {
+            cout << "IDA* "<< sec <<"s duration elapsed; "<< nodesExpanded << " expanded; "<< nodesGenerated << " generated; ";
+            cout << "Solution Length " << pathLength <<endl<<endl;
+        } else {
+            cout<<" IDA* could not find a path "<<endl;
+        }
+    }
+
 }
 
 bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &parentMove) {
 
     if (gameState.isSolved()) {
-        cout<<"Solved"<<endl;
-        gameState.printBoard();
+        cout<<"Final State "<<gameState.serializeBoard()<<endl;
         return true;
     }
-
     vector<MovePair> allMoves;
     gameState.generateValidMoves(allMoves, parentMove);
+    nodesExpanded += 1;
+    nodesGenerated += allMoves.size();
     bool found = false;
     for (auto const &move: allMoves) {
         gameState.move(move.first, move.second);
@@ -69,6 +82,7 @@ bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &
         //undo move
         gameState.move(move.second, move.first);
         if (found) {
+            pathLength += 1;
             return true;
         }
     }
@@ -77,21 +91,19 @@ bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &
 
 bool SlidingTilePuzzleIDA_Star::solvePuzzle() {
     if (gameState.isSolved()) {
-        cout<<"Solved"<<endl;
-        gameState.printBoard();
+        cout<<"Final State "<<gameState.serializeBoard()<<endl;
         return true;
     }
     bool found = false;
     auto bound = gameState.heuristic;
     auto dummyStart = make_pair(make_pair(-1, -1), make_pair(-1, -1));
-    while (!found) {
+    cout<<"Starting from "<<gameState.serializeBoard()<<endl;
+    while (!found and bound < INT_MAX) {
         nextBound = INT_MAX;
-        cout <<"Bound "<< bound << endl;
+        cout<<"Starting iteration with bound "<< bound << "; " << nodesExpanded << " expanded; "<< nodesGenerated << " generated"<<endl;
         visited.insert({gameState.hashValue, {0, bound}});
         found = search(0, bound, dummyStart);
         bound = nextBound;
     }
-    cout<<endl;
-    gameState.printBoard();
     return found;
 }

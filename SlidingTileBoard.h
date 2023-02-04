@@ -41,9 +41,11 @@ public:
 
     void generateValidMoves(vector<MovePair> &allMoves, const MovePair &parentMove);
 
-    int getTile(IntPair xy);
+    int getTile(IntPair &xy);
 
-    IntPair getActualCoordinate(IntPair xy);
+    IntPair getActualCoordinate(IntPair &xy);
+
+    string serializeBoard();
 };
 
 
