@@ -101,7 +101,7 @@ bool BTS_SlidingTilePuzzleSolver::limitedDFS(double pathCost, const double costL
             return true;
         }
 
-        if (f > costLimit + epsilon) {
+        if (f > costLimit) {
             f_above = f < f_above? f : f_above;
         } else if (f >= solutionCost) {
             f_below = solutionCost;
@@ -175,7 +175,15 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
             fCostBound.second = INFINITY_DBL;
             pathLength = 0;
             reportFinalState = true;
+            auto saveNodesExpanded = nodesExpanded;
+            auto saveNodesGenerated = nodesGenerated;
+            auto maxFCostBound = f_below;
             search(fCostBound.first, MAX_NODES, fCostBound);
+            if (pathLength == 0) {
+                nodesExpanded = saveNodesExpanded;
+                nodesGenerated = saveNodesGenerated;
+                search(maxFCostBound, MAX_NODES, fCostBound);
+            }
             break;
         }
     }

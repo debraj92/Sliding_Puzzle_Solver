@@ -30,8 +30,8 @@ class BTS_SlidingTilePuzzleSolver {
 
     double f_below = 0;
     double f_above = INFINITY_DBL;
-    const long long c1 = 3;
-    const long long c2 = 10;
+    const long long c1 = 2;
+    const long long c2 = 8;
     const double epsilon = 0.00001;
     long long nodes = 0;
     long long nodeBudget = 0;
