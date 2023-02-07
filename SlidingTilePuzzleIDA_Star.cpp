@@ -88,7 +88,7 @@ bool SlidingTilePuzzleIDA_Star::solvePuzzle() {
         return true;
     }
     bool found = false;
-    auto bound = gameState.heuristic;
+    auto bound = (double) gameState.heuristic;
     auto dummyStart = make_pair(make_pair(-1, -1), make_pair(-1, -1));
     cout<<"Starting from "<<gameState.serializeBoard()<<endl;
     while (!found and bound < INT_MAX) {

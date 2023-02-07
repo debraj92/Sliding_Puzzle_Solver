@@ -20,8 +20,8 @@ class SlidingTilePuzzleIDA_Star {
     SlidingTileBoard gameState;
 
     int pathLength = 0;
-    int nodesExpanded = 0;
-    u_long nodesGenerated = 0;
+    long long nodesExpanded = 0;
+    long long nodesGenerated = 0;
 
     std::vector<std::string> split(const std::string& str, char delim) {
         std::vector<std::string> strings;
