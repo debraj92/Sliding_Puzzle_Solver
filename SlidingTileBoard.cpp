@@ -26,19 +26,26 @@ int SlidingTileBoard::calculateManhattanDistance(const IntPair &start, const Int
 
 void SlidingTileBoard::move(const IntPair &from, const IntPair &to) {
     heuristic += heuristicTable[board[from.first][from.second] - 1][to.first][to.second] - heuristicTable[board[from.first][from.second]  - 1][from.first][from.second];
-    hashValue ^= ((Long)(from.first * 4 + from.second)) << (board[from.first][from.second] * 4);
     board[to.first][to.second] = board[from.first][from.second];
     board[from.first][from.second] = 0;
-    hashValue ^= ((Long)(to.first * 4 + to.second)) << (board[to.first][to.second] * 4);
     zeroCoordinate = from;
 }
 
 bool SlidingTileBoard::isSolved() {
+#ifdef UNIFORM_COST
     return heuristic == 0;
+#else
+    return heuristic < 0.005;
+#endif
 }
 
 int SlidingTileBoard::getGCost() {
     return 1;
+}
+
+double SlidingTileBoard::getGCostWeighted(const IntPair& tileCoordinate) {
+    auto t = (double) board[tileCoordinate.first][tileCoordinate.second];
+    return (t + 2) / (t + 1);
 }
 
 // Never Used
@@ -61,7 +68,6 @@ void SlidingTileBoard::generateValidMoves(vector<MovePair> &allMoves, const Move
 
 void SlidingTileBoard::initialize(vector<string> &tileBoard) {
 
-    hashValue = 0;
     actualXY.clear();
     heuristic = 0;
 
@@ -71,28 +77,18 @@ void SlidingTileBoard::initialize(vector<string> &tileBoard) {
             board[r][c] = std::stoi(tileBoard[k]);
             if (!board[r][c]) {
                 zeroCoordinate = make_pair(r, c);
-            } else {
-                hashValue ^= ((Long) (r * 4 + c)) << (board[r][c] * 4);
             }
             actualXY.insert({k, make_pair(r, c)});
             ++k;
         }
     }
-    for(int r=0; r < 4; ++r) {
-        for (int c = 0; c < 4; ++c) {
-            if (board[r][c]) {
-                heuristic += calculateManhattanDistance(make_pair(r, c), actualXY.at(board[r][c]));
-            }
-        }
-    }
 
-    for(k=1; k <= 15; ++k) {
-        for(int r=0; r < 4; ++r) {
-            for (int c = 0; c < 4; ++c) {
-                heuristicTable[k-1][r][c] = calculateManhattanDistance(make_pair(r, c), actualXY.at(k));
-            }
-        }
-    }
+#ifdef UNIFORM_COST
+    initializeUniformHeuristic();
+#else
+    initializeNonUniformHeuristic();
+#endif
+
 }
 
 int SlidingTileBoard::getTile(IntPair &xy) {
@@ -113,28 +109,37 @@ string SlidingTileBoard::serializeBoard() {
     return output;
 }
 
-int SlidingTileBoard::getDeltaHeuristicFromMove(const MovePair &move) {
-    auto &from = move.first;
-    auto &to = move.second;
-    return heuristicTable[board[from.first][from.second] - 1][to.first][to.second] - heuristicTable[board[from.first][from.second]  - 1][from.first][from.second];
-}
-
 void SlidingTileBoard::initActionCache() {
     for(int x=0; x < 4; ++x) {
         for (int y=0; y < 4; ++y) {
             pair<int, int> targetCoordinate = {x, y};
             vector<MovePair> allMoves;
-            if (y > 0) {
-                allMoves.emplace_back(make_pair(make_pair(x, y - 1), targetCoordinate));
-            }
-            if (y < 3) {
-                allMoves.emplace_back(make_pair(make_pair(x, y + 1), targetCoordinate));
-            }
-            if (x > 0) {
-                allMoves.emplace_back(make_pair(make_pair(x - 1, y), targetCoordinate));
-            }
-            if (x < 3) {
-                allMoves.emplace_back(make_pair(make_pair(x + 1, y), targetCoordinate));
+            if (x > y) {
+                if (x > 0) {
+                    allMoves.emplace_back(make_pair(make_pair(x - 1, y), targetCoordinate));
+                }
+                if (x < 3) {
+                    allMoves.emplace_back(make_pair(make_pair(x + 1, y), targetCoordinate));
+                }
+                if (y > 0) {
+                    allMoves.emplace_back(make_pair(make_pair(x, y - 1), targetCoordinate));
+                }
+                if (y < 3) {
+                    allMoves.emplace_back(make_pair(make_pair(x, y + 1), targetCoordinate));
+                }
+            } else {
+                if (y > 0) {
+                    allMoves.emplace_back(make_pair(make_pair(x, y - 1), targetCoordinate));
+                }
+                if (y < 3) {
+                    allMoves.emplace_back(make_pair(make_pair(x, y + 1), targetCoordinate));
+                }
+                if (x > 0) {
+                    allMoves.emplace_back(make_pair(make_pair(x - 1, y), targetCoordinate));
+                }
+                if (x < 3) {
+                    allMoves.emplace_back(make_pair(make_pair(x + 1, y), targetCoordinate));
+                }
             }
             actionCache[x][y] = allMoves;
         }
@@ -144,5 +149,47 @@ void SlidingTileBoard::initActionCache() {
 
 vector<MovePair>& SlidingTileBoard::getActions() {
     return actionCache[zeroCoordinate.first][zeroCoordinate.second];
+}
+
+void SlidingTileBoard::initializeUniformHeuristic() {
+#ifdef UNIFORM_COST
+    for(int r=0; r < 4; ++r) {
+        for (int c = 0; c < 4; ++c) {
+            if (board[r][c]) {
+                heuristic += calculateManhattanDistance(make_pair(r, c), actualXY.at(board[r][c]));
+            }
+        }
+    }
+
+    for(int k=1; k <= 15; ++k) {
+        for(int r=0; r < 4; ++r) {
+            for (int c = 0; c < 4; ++c) {
+                heuristicTable[k-1][r][c] = calculateManhattanDistance(make_pair(r, c), actualXY.at(k));
+            }
+        }
+    }
+#endif
+}
+
+void SlidingTileBoard::initializeNonUniformHeuristic() {
+#ifndef UNIFORM_COST
+    for(int r=0; r < 4; ++r) {
+        for (int c = 0; c < 4; ++c) {
+            if (board[r][c]) {
+                heuristic += ((double) calculateManhattanDistance(make_pair(r, c), actualXY.at(board[r][c]))) * getGCostWeighted({r, c});
+            }
+        }
+    }
+
+    for(int k=1; k <= 15; ++k) {
+        auto t = (double) k;
+        auto tileWeight = (t + 2) / (t + 1);
+        for(int r=0; r < 4; ++r) {
+            for (int c = 0; c < 4; ++c) {
+                heuristicTable[k-1][r][c] = ((double) calculateManhattanDistance(make_pair(r, c), actualXY.at(k))) * tileWeight;
+            }
+        }
+    }
+#endif
 }
 

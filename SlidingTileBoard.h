@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 
+#include "CostType.h"
+
 using namespace std;
 
 using Long = long long;
@@ -26,12 +28,22 @@ public:
     SlidingTileBoard() {
         initActionCache();
     }
+
+#ifdef UNIFORM_COST
     int heuristic = 0;
     int heuristicTable[15][4][4];
+#else
+    double heuristic = 0;
+    double heuristicTable[15][4][4];
+#endif
+
     vector<MovePair> actionCache[4][4];
-    Long hashValue;
 
     void initialize(std::vector<string> &tileBoard);
+
+    void initializeUniformHeuristic();
+
+    void initializeNonUniformHeuristic();
 
     void printBoard();
 
@@ -43,6 +55,8 @@ public:
 
     int getGCost();
 
+    double getGCostWeighted(const IntPair& tileCoordinate);
+
     // Never Used
     void generateValidMoves(vector<MovePair> &allMoves, const MovePair &parentMove);
 
@@ -51,8 +65,6 @@ public:
     IntPair getActualCoordinate(IntPair &xy);
 
     string serializeBoard();
-
-    int getDeltaHeuristicFromMove(const MovePair &move);
 
     void initActionCache();
 

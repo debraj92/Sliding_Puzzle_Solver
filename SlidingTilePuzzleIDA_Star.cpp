@@ -27,7 +27,7 @@ void SlidingTilePuzzleIDA_Star::playAllGames() {
         pathLength = 0;
         nodesGenerated = 0;
         nodesExpanded = 0;
-        nextBound = INT_MAX;
+        nextBound = (double) INT_MAX;
         gameState.initialize(board);
         auto start = chrono::steady_clock::now();
         auto pathFound = solvePuzzle();
@@ -44,7 +44,7 @@ void SlidingTilePuzzleIDA_Star::playAllGames() {
 
 }
 
-bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &parentMove) {
+bool SlidingTilePuzzleIDA_Star::search(double pathCost, double bound, const MovePair &parentMove) {
 
     if (gameState.isSolved()) {
         cout<<"Final State "<<gameState.serializeBoard()<<endl;
@@ -52,7 +52,6 @@ bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &
     }
     auto allMoves = gameState.getActions();
     nodesExpanded += 1;
-    nodesGenerated += allMoves.size();
     bool found = false;
     for (auto const &move: allMoves) {
         if (parentMove.second.first == move.first.first && parentMove.second.second == move.first.second) {
@@ -60,7 +59,11 @@ bool SlidingTilePuzzleIDA_Star::search(int pathCost, int bound, const MovePair &
         }
         nodesGenerated += 1;
         gameState.move(move.first, move.second);
+#ifdef UNIFORM_COST
         auto gCost = pathCost + gameState.getGCost();
+#else
+        auto gCost = pathCost + gameState.getGCostWeighted(move.second);
+#endif
         auto f = gCost + gameState.heuristic;
         if (f > bound) {
             if (f < nextBound) {

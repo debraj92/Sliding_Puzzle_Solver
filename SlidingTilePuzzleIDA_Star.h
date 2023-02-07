@@ -16,7 +16,7 @@ using namespace std;
 class SlidingTilePuzzleIDA_Star {
 
     vector<vector<string>> allGameBoards;
-    int nextBound = 0;
+    double nextBound = 0;
     SlidingTileBoard gameState;
 
     int pathLength = 0;
@@ -41,7 +41,7 @@ public:
 
     bool solvePuzzle();
 
-    bool search(int pathCost, int bound, const MovePair &parentMove);
+    bool search(double pathCost, double bound, const MovePair &parentMove);
 };
 
 
