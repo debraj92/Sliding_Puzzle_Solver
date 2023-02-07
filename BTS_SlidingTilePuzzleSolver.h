@@ -25,16 +25,16 @@ class BTS_SlidingTilePuzzleSolver {
     SlidingTileBoard gameState;
 
     int pathLength = 0;
-    int nodesExpanded = 0;
-    u_long nodesGenerated = 0;
+    unsigned long long nodesExpanded = 0;
+    unsigned long long nodesGenerated = 0;
 
     double f_below = 0;
     double f_above = INFINITY_DBL;
     const long long c1 = 2;
     const long long c2 = 8;
     const double epsilon = 0.00001;
-    long long nodes = 0;
-    long long nodeBudget = 0;
+    unsigned long long nodes = 0;
+    unsigned long long nodeBudget = 0;
     bool reportFinalState = false;
     double solutionCost = INFINITY_DBL;
     DoublePair fCostBound;
@@ -56,9 +56,9 @@ public:
     void fetchAllGames();
     void playAllGames();
 
-    bool limitedDFS(double pathCost, double costLimit, long long nodeLimit, const MovePair &parentMove);
+    bool limitedDFS(double pathCost, double costLimit, unsigned long long nodeLimit, const MovePair &parentMove);
 
-    void search(double costLimit, long long nodeLimit, DoublePair &result);
+    void search(double costLimit, unsigned long long nodeLimit, DoublePair &result);
 
     void solveWithBts();
 };

@@ -39,7 +39,7 @@ void BTS_SlidingTilePuzzleSolver::playAllGames() {
 
 }
 
-void BTS_SlidingTilePuzzleSolver::search(const double costLimit, const long long nodeLimit, DoublePair &result) {
+void BTS_SlidingTilePuzzleSolver::search(const double costLimit, const unsigned long long nodeLimit, DoublePair &result) {
 
     f_below = 0;
     f_above = INFINITY_DBL;
@@ -64,7 +64,7 @@ void BTS_SlidingTilePuzzleSolver::search(const double costLimit, const long long
     }
 }
 
-bool BTS_SlidingTilePuzzleSolver::limitedDFS(double pathCost, const double costLimit, const long long nodeLimit, const MovePair &parentMove) {
+bool BTS_SlidingTilePuzzleSolver::limitedDFS(double pathCost, const double costLimit, const unsigned long long nodeLimit, const MovePair &parentMove) {
 
     if (solutionCost == solutionLowerBound) {
         return false;
@@ -167,7 +167,7 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
             }
         }
 
-        nodeBudget = max(nodes, c1 * nodeBudget);
+        nodeBudget = nodes > c1 * nodeBudget ? nodes : c1 * nodeBudget;
 
         if (solutionCost == fCostBound.first) {
             solutionCost = INFINITY_DBL;
