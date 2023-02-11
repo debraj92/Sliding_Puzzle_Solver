@@ -33,7 +33,9 @@ make
 Example Output:
 
 Starting from  1 5 2 3 0 6 10 7 4 8 9 11 12 13 14 15
+
 Starting iteration with bound 7; 0 expanded; 0 generated
+
 Final State  0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
    0   1   2   3
    4   5   6   7
