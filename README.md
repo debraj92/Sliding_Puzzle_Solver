@@ -23,8 +23,11 @@ https://webdocs.cs.ualberta.ca/~nathanst/papers/sturtevant2020btsguide.pdf
 Commands to test using C++:
 
 mkdir build;cd build
+
 cmake ..
+
 make
+
 ./658_A1 "1 5 2 3 0 6 10 7 4 8 9 11 12 13 14 15"
 
 
