@@ -9,7 +9,7 @@
 using namespace std;
 
 void BTS_SlidingTilePuzzleSolver::fetchAllGames() {
-    std::ifstream file( "../korf100_run.txt" );
+    std::ifstream file( "../run.txt" );
     if (file.is_open()) {
         std::string line;
         while (std::getline(file, line)) {
@@ -95,6 +95,9 @@ bool BTS_SlidingTilePuzzleSolver::limitedDFS(double pathCost, const double costL
             solutionCost = f;
             if (reportFinalState) {
                 cout<<"Final State "<<gameState.serializeBoard()<<endl;
+                if (showPath) {
+                    gameState.printBoard();
+                }
             }
             //undo move
             gameState.move(move.second, move.first);
@@ -115,6 +118,9 @@ bool BTS_SlidingTilePuzzleSolver::limitedDFS(double pathCost, const double costL
 
         if (found) {
             ++pathLength;
+            if(reportFinalState && showPath) {
+                gameState.printBoard();
+            }
             return true;
         }
     }
@@ -187,4 +193,20 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
             break;
         }
     }
+}
+
+void BTS_SlidingTilePuzzleSolver::playGame(string& board) {
+    pathLength = 0;
+    nodesGenerated = 0;
+    nodesExpanded = 0;
+    showPath = true;
+    auto b = split(board, ' ');
+    gameState.initialize(b);
+    auto start = chrono::steady_clock::now();
+    solveWithBts();
+    auto end = chrono::steady_clock::now();
+    auto diff = end - start;
+    auto sec = chrono::duration <double, milli> (diff).count() / 1000;
+    cout << "BTS "<< sec <<"s duration elapsed; "<< nodesExpanded << " expanded; "<< nodesGenerated << " generated; ";
+    cout << "Solution Length " << pathLength <<endl<<endl;
 }

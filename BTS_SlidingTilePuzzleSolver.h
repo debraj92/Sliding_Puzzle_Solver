@@ -40,6 +40,8 @@ class BTS_SlidingTilePuzzleSolver {
     DoublePair fCostBound;
     double solutionLowerBound = INFINITY_DBL;
 
+    bool showPath = false;
+
     std::vector<std::string> split(const std::string& str, char delim) {
         std::vector<std::string> strings;
         size_t start;
@@ -55,12 +57,14 @@ public:
 
     void fetchAllGames();
     void playAllGames();
+    void playGame(string& board);
 
     bool limitedDFS(double pathCost, double costLimit, unsigned long long nodeLimit, const MovePair &parentMove);
 
     void search(double costLimit, unsigned long long nodeLimit, DoublePair &result);
 
     void solveWithBts();
+
 };
 
 

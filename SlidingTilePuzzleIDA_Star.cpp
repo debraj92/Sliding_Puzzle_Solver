@@ -9,7 +9,7 @@
 using namespace std;
 
 void SlidingTilePuzzleIDA_Star::fetchAllGames() {
-    std::ifstream file( "../korf100_run.txt" );
+    std::ifstream file( "../run.txt" );
     if (file.is_open()) {
         std::string line;
         while (std::getline(file, line)) {
@@ -48,6 +48,9 @@ bool SlidingTilePuzzleIDA_Star::search(double pathCost, double bound, const Move
 
     if (gameState.isSolved()) {
         cout<<"Final State "<<gameState.serializeBoard()<<endl;
+        if(showPath) {
+            gameState.printBoard();
+        }
         return true;
     }
     auto allMoves = gameState.getActions();
@@ -76,6 +79,9 @@ bool SlidingTilePuzzleIDA_Star::search(double pathCost, double bound, const Move
         gameState.move(move.second, move.first);
         if (found) {
             pathLength += 1;
+            if(showPath) {
+                gameState.printBoard();
+            }
             return true;
         }
     }
@@ -98,4 +104,25 @@ bool SlidingTilePuzzleIDA_Star::solvePuzzle() {
         bound = nextBound;
     }
     return found;
+}
+
+void SlidingTilePuzzleIDA_Star::playGame(string& board) {
+    pathLength = 0;
+    nodesGenerated = 0;
+    nodesExpanded = 0;
+    nextBound = (double) INT_MAX;
+    showPath = true;
+    auto b = split(board, ' ');
+    gameState.initialize(b);
+    auto start = chrono::steady_clock::now();
+    auto pathFound = solvePuzzle();
+    auto end = chrono::steady_clock::now();
+    auto diff = end - start;
+    auto sec = chrono::duration <double, milli> (diff).count() / 1000;
+    if (pathFound) {
+        cout << "IDA* "<< sec <<"s duration elapsed; "<< nodesExpanded << " expanded; "<< nodesGenerated << " generated; ";
+        cout << "Solution Length " << pathLength <<endl<<endl;
+    } else {
+        cout<<" IDA* could not find a path "<<endl;
+    }
 }

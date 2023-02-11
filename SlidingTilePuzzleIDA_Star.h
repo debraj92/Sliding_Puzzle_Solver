@@ -23,6 +23,8 @@ class SlidingTilePuzzleIDA_Star {
     long long nodesExpanded = 0;
     long long nodesGenerated = 0;
 
+    bool showPath = false;
+
     std::vector<std::string> split(const std::string& str, char delim) {
         std::vector<std::string> strings;
         size_t start;
@@ -38,6 +40,8 @@ public:
 
     void fetchAllGames();
     void playAllGames();
+
+    void playGame(string& board);
 
     bool solvePuzzle();
 

@@ -18,6 +18,7 @@ void SlidingTileBoard::printBoard() {
         }
         cout<<endl;
     }
+    cout<<endl;
 }
 
 int SlidingTileBoard::calculateManhattanDistance(const IntPair &start, const IntPair &end) {
