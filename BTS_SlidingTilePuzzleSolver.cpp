@@ -152,6 +152,10 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
             nodeBudget = nodes;
             continue;
         }
+        if (solutionCost == fCostBound.first) {
+            // done
+            return;
+        }
         reportFinalState = false;
         // Exponential Search
         double delta = 0;
