@@ -3,5 +3,3 @@
 //
 
 #define UNIFORM_COST
-
-//#undef UNIFORM_COST
