@@ -27,7 +27,7 @@ void SlidingTilePuzzleIDA_Star::playAllGames() {
         pathLength = 0;
         nodesGenerated = 0;
         nodesExpanded = 0;
-        nextBound = (double) INT_MAX;
+        nextBound = INFINITY_DBL;
         gameState.initialize(board);
         auto start = chrono::steady_clock::now();
         auto pathFound = solvePuzzle();
@@ -68,7 +68,7 @@ bool SlidingTilePuzzleIDA_Star::search(double pathCost, double bound, const Move
         auto gCost = pathCost + gameState.getGCostWeighted(move.second);
 #endif
         auto f = gCost + gameState.heuristic;
-        if (f > bound) {
+        if ((f - bound) > epsilon) {
             if (f < nextBound) {
                 nextBound = f;
             }
@@ -97,8 +97,8 @@ bool SlidingTilePuzzleIDA_Star::solvePuzzle() {
     auto bound = (double) gameState.heuristic;
     auto dummyStart = make_pair(make_pair(-1, -1), make_pair(-1, -1));
     cout<<"Starting from "<<gameState.serializeBoard()<<endl;
-    while (!found and bound < INT_MAX) {
-        nextBound = INT_MAX;
+    while (!found and bound < INFINITY_DBL) {
+        nextBound = INFINITY_DBL;
         cout<<"Starting iteration with bound "<< bound << "; " << nodesExpanded << " expanded; "<< nodesGenerated << " generated"<<endl;
         found = search(0, bound, dummyStart);
         bound = nextBound;
@@ -110,7 +110,7 @@ void SlidingTilePuzzleIDA_Star::playGame(string& board) {
     pathLength = 0;
     nodesGenerated = 0;
     nodesExpanded = 0;
-    nextBound = (double) INT_MAX;
+    nextBound = INFINITY_DBL;
     showPath = true;
     auto b = split(board, ' ');
     gameState.initialize(b);

@@ -15,6 +15,7 @@ using namespace std;
 
 class SlidingTilePuzzleIDA_Star {
 
+    const double INFINITY_DBL = (double) INT_MAX;
     vector<vector<string>> allGameBoards;
     double nextBound = 0;
     SlidingTileBoard gameState;
@@ -23,6 +24,7 @@ class SlidingTilePuzzleIDA_Star {
     long long nodesExpanded = 0;
     long long nodesGenerated = 0;
 
+    const double epsilon = 0.0000001;
     bool showPath = false;
 
     std::vector<std::string> split(const std::string& str, char delim) {
