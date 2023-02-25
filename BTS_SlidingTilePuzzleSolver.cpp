@@ -34,9 +34,8 @@ void BTS_SlidingTilePuzzleSolver::playAllGames() {
         auto diff = end - start;
         auto sec = chrono::duration <double, milli> (diff).count() / 1000;
         cout << "BTS "<< sec <<"s duration elapsed; "<< nodesExpanded << " expanded; "<< nodesGenerated << " generated; ";
-        cout << "Solution Length " << pathLength <<endl<<endl;
+        cout << "Solution Cost "<<solutionCost <<endl<<endl;
     }
-
 }
 
 void BTS_SlidingTilePuzzleSolver::search(const double costLimit, const unsigned long long nodeLimit, DoublePair &result) {
@@ -69,13 +68,31 @@ bool BTS_SlidingTilePuzzleSolver::limitedDFS(double pathCost, const double costL
     if (solutionCost == solutionLowerBound) {
         return false;
     }
+    auto f = pathCost + gameState.heuristic;
+    if (f > costLimit) {
+        f_above = f < f_above? f : f_above;
+        return false;
+    }
+    if (f >= solutionCost) {
+        f_below = solutionCost;
+        return false;
+    }
+    f_below = f > f_below ? f : f_below;
 
     if (nodes >= nodeLimit) {
         return false;
     }
+
+    if (gameState.isSolved()) {
+        solutionCost = pathCost;
+        if (showPath) {
+            gameState.printBoard();
+        }
+        return true;
+    }
+
     nodes += 1;
     nodesExpanded += 1;
-    bool found = false;
     auto allMoves = gameState.getActions();
     for (auto const &move: allMoves) {
         if (parentMove.second.first == move.first.first && parentMove.second.second == move.first.second) {
@@ -88,41 +105,9 @@ bool BTS_SlidingTilePuzzleSolver::limitedDFS(double pathCost, const double costL
 #else
         auto gCost = pathCost + gameState.getGCostWeighted(move.second);
 #endif
-        auto f = gCost + gameState.heuristic;
-
-        if (gameState.isSolved()) {
-            ++pathLength;
-            solutionCost = f;
-            if (reportFinalState) {
-                cout<<"Final State "<<gameState.serializeBoard()<<endl;
-                if (showPath) {
-                    gameState.printBoard();
-                }
-            }
-            //undo move
-            gameState.move(move.second, move.first);
-            return true;
-        }
-
-        if (f > costLimit) {
-            f_above = f < f_above? f : f_above;
-        } else if (f >= solutionCost) {
-            f_below = solutionCost;
-        } else {
-            f_below = f > f_below ? f : f_below;
-            found = limitedDFS(gCost, costLimit, nodeLimit, move);
-        }
-
+        limitedDFS(gCost, costLimit, nodeLimit, move);
         //undo move
         gameState.move(move.second, move.first);
-
-        if (found) {
-            ++pathLength;
-            if(reportFinalState && showPath) {
-                gameState.printBoard();
-            }
-            return true;
-        }
     }
     return false;
 }
@@ -148,13 +133,14 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
         reportFinalState = true;
         cout<<"Starting iteration with bound "<< fCostBound.first << "; " << nodesExpanded << " expanded; "<< nodesGenerated << " generated"<<endl;
         search(fCostBound.first, MAX_NODES, fCostBound);
+        if (solutionCost == fCostBound.first) {
+            // done
+            cout <<"Final State 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"<<endl;
+            return;
+        }
         if (nodes >= c1 * nodeBudget) {
             nodeBudget = nodes;
             continue;
-        }
-        if (solutionCost == fCostBound.first) {
-            // done
-            return;
         }
         reportFinalState = false;
         // Exponential Search
@@ -180,20 +166,7 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
         nodeBudget = nodes > c1 * nodeBudget ? nodes : c1 * nodeBudget;
 
         if (solutionCost == fCostBound.first) {
-            solutionCost = INFINITY_DBL;
-            solutionLowerBound = fCostBound.first;
-            fCostBound.second = INFINITY_DBL;
-            pathLength = 0;
-            reportFinalState = true;
-            auto saveNodesExpanded = nodesExpanded;
-            auto saveNodesGenerated = nodesGenerated;
-            auto maxFCostBound = f_below;
-            search(fCostBound.first, MAX_NODES, fCostBound);
-            if (pathLength == 0) {
-                nodesExpanded = saveNodesExpanded;
-                nodesGenerated = saveNodesGenerated;
-                search(maxFCostBound, MAX_NODES, fCostBound);
-            }
+            cout <<"Final State 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"<<endl;
             break;
         }
     }
@@ -212,5 +185,5 @@ void BTS_SlidingTilePuzzleSolver::playGame(string& board) {
     auto diff = end - start;
     auto sec = chrono::duration <double, milli> (diff).count() / 1000;
     cout << "BTS "<< sec <<"s duration elapsed; "<< nodesExpanded << " expanded; "<< nodesGenerated << " generated; ";
-    cout << "Solution Length " << pathLength <<endl<<endl;
+    cout << "Solution Cost "<<solutionCost <<endl<<endl;
 }
