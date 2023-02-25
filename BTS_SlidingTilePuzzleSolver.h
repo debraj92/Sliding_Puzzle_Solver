@@ -24,7 +24,6 @@ class BTS_SlidingTilePuzzleSolver {
 
     SlidingTileBoard gameState;
 
-    int pathLength = 0;
     unsigned long long nodesExpanded = 0;
     unsigned long long nodesGenerated = 0;
 
@@ -35,7 +34,6 @@ class BTS_SlidingTilePuzzleSolver {
     const double epsilon = 0.00001;
     unsigned long long nodes = 0;
     unsigned long long nodeBudget = 0;
-    bool reportFinalState = false;
     double solutionCost = INFINITY_DBL;
     DoublePair fCostBound;
     double solutionLowerBound = INFINITY_DBL;

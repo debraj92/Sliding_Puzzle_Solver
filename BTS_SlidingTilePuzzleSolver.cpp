@@ -24,7 +24,6 @@ void BTS_SlidingTilePuzzleSolver::fetchAllGames() {
 
 void BTS_SlidingTilePuzzleSolver::playAllGames() {
     for(auto &board: allGameBoards) {
-        pathLength = 0;
         nodesGenerated = 0;
         nodesExpanded = 0;
         gameState.initialize(board);
@@ -105,7 +104,14 @@ bool BTS_SlidingTilePuzzleSolver::limitedDFS(double pathCost, const double costL
 #else
         auto gCost = pathCost + gameState.getGCostWeighted(move.second);
 #endif
-        limitedDFS(gCost, costLimit, nodeLimit, move);
+        if (limitedDFS(gCost, costLimit, nodeLimit, move)) {
+            if (showPath) {
+                //undo move
+                gameState.move(move.second, move.first);
+                gameState.printBoard();
+                return true;
+            }
+        }
         //undo move
         gameState.move(move.second, move.first);
     }
@@ -130,7 +136,6 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
         fCostBound.second = INFINITY_DBL;
 
         // Regular IDA*
-        reportFinalState = true;
         cout<<"Starting iteration with bound "<< fCostBound.first << "; " << nodesExpanded << " expanded; "<< nodesGenerated << " generated"<<endl;
         search(fCostBound.first, MAX_NODES, fCostBound);
         if (solutionCost == fCostBound.first) {
@@ -142,7 +147,6 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
             nodeBudget = nodes;
             continue;
         }
-        reportFinalState = false;
         // Exponential Search
         double delta = 0;
         double nextCost;
@@ -173,10 +177,9 @@ void BTS_SlidingTilePuzzleSolver::solveWithBts() {
 }
 
 void BTS_SlidingTilePuzzleSolver::playGame(string& board) {
-    pathLength = 0;
     nodesGenerated = 0;
     nodesExpanded = 0;
-    showPath = true;
+    showPath = false;
     auto b = split(board, ' ');
     gameState.initialize(b);
     auto start = chrono::steady_clock::now();
@@ -186,4 +189,14 @@ void BTS_SlidingTilePuzzleSolver::playGame(string& board) {
     auto sec = chrono::duration <double, milli> (diff).count() / 1000;
     cout << "BTS "<< sec <<"s duration elapsed; "<< nodesExpanded << " expanded; "<< nodesGenerated << " generated; ";
     cout << "Solution Cost "<<solutionCost <<endl<<endl;
+    auto dummyStart = make_pair(make_pair(-1, -1), make_pair(-1, -1));
+    showPath = true;
+    solutionLowerBound = gameState.heuristic;
+    nodes = 0;
+    f_below = 0;
+    f_above = INFINITY_DBL;
+    auto costLimit = solutionCost + epsilon;
+    solutionCost = INFINITY_DBL;
+
+    limitedDFS(0, costLimit, MAX_NODES, dummyStart);
 }
