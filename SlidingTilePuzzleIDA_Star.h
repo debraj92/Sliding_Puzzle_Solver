@@ -27,6 +27,8 @@ class SlidingTilePuzzleIDA_Star {
     const double epsilon = 0.0000001;
     bool showPath = false;
 
+    double solutionCost;
+
     std::vector<std::string> split(const std::string& str, char delim) {
         std::vector<std::string> strings;
         size_t start;

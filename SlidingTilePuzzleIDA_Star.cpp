@@ -36,7 +36,11 @@ void SlidingTilePuzzleIDA_Star::playAllGames() {
         auto sec = chrono::duration <double, milli> (diff).count() / 1000;
         if (pathFound) {
             cout << "IDA* "<< sec <<"s duration elapsed; "<< nodesExpanded << " expanded; "<< nodesGenerated << " generated; ";
+#ifdef UNIFORM_COST
             cout << "Solution Length " << pathLength <<endl<<endl;
+#else
+            cout << "Solution Cost " << solutionCost <<endl<<endl;
+#endif
         } else {
             cout<<" IDA* could not find a path "<<endl;
         }
@@ -51,6 +55,7 @@ bool SlidingTilePuzzleIDA_Star::search(double pathCost, double bound, const Move
         if(showPath) {
             gameState.printBoard();
         }
+        solutionCost = pathCost;
         return true;
     }
     auto allMoves = gameState.getActions();
